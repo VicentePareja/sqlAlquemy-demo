@@ -40,11 +40,14 @@ def startup_populate_db():
 @app.get("/index/", response_class=HTMLResponse)
 async def movielist(request: Request,
                     hx_request: Optional[str] = Header(None),
-                    db: Session = Depends(get_db)
+                    db: Session = Depends(get_db),
+                    page: int = 1,
                     ):
-    films = db.query(models.Film).all()
+    films_per_page = 2
+    offset = (page - 1) * films_per_page
+    films = db.query(models.Film).offset(offset).limit(films_per_page)
     print(films)
-    context = {"request": request, 'films': films}
+    context = {"request": request, 'films': films, 'page': page}
     if hx_request:
         return templates.TemplateResponse("partials/table.html", context)
     return templates.TemplateResponse("index.html", context)
